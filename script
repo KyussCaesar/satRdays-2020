@@ -1,0 +1,64 @@
+high level:
+
+- what _is_ production?
+  what's stopping you from just running it on your machine?
+  why does anything need to change?
+- ans: so you can call something "finished"
+  don't need to babysit it, can get on improving things
+  less reliance on a single machine with your office's internet
+- what makes this difficult for R compared with other languages?
+  other languages:
+    - e.g C: already standardised tools for building, people have
+      been doing it forever
+    - e.g JS: `npm` handles a lot of the complexity for you
+    - e.g Rust/Go: statically-linked binary, lockfiles
+  R:
+    - doesn't really have any standardised approach
+    - "package managers" and "version control" still seem to be
+      relatively new things to the R community
+
+---
+
+Good morning everyone!
+
+My name is Antony and I'm a Data Engineer at Quantiful.
+
+I'm here today give a high-level overview of how we run R code in
+production like absolute madlads.
+
+But first, we gotta take a minute to talk about "production"
+what does that mean exactly?
+what's the difference between "production" versus just running it
+on your machine?
+
+deployment to production represents developers letting go of their code
+
+% bad way to phrase; trying to say like "it needs to be able to run
+% without intervention"
+
+the big part about runnign 
+
+one of the biggest challenges about running code without close supervision
+
+...but we already _have_ an environment where the code works;
+your machine!
+
+so one way to ease the transition is to replicate the environment as
+closely as you can
+
+this means you need:
+
+- the same OS
+- the same system packages installed
+- the same R version
+- the same R package versions
+
+and, of course, the _code_.
+
+our solutions for these are
+
+- docker
+- docker
+- docker
+- packrat
+- git

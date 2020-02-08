@@ -1,0 +1,136 @@
+"production-grade R"
+
+presentation: https://docs.google.com/presentation/d/1JvHIwPmN_qI5-zKKZKpMOoAGncYjZFo1jzT9iL-Zue8/edit#slide=id.gc6f73a04f_0_0
+
+what does it mean for production?
+
+gotta be able to run without intervention
+
+helps if everyone is using the same codebase -> Git and GitHub for version control
+
+but that's not enough; gotta control the R version and OS
+
+easiest way to get control of the whole thing is either VMs or Containerisation
+
+end:
+    solution we came to was:
+    - packrat to control R package versions
+    - Docker container to control OS, system packages and R version
+    - shell scripts which stitch it together:
+      - basically a mixture of builder and runner
+      - another one handles the "standalone" build
+    - use version control to keep the different stuff consistent
+    - extra cherry on top:
+      - devs can just use RStudio + packrat reasonably transparently, so for them, not really too different
+
+so how did we get there?
+
+For package management, feels like the R ecosystem is still discovering what that means.
+- e.g per-project, you want to keep everything the same
+  installing new packages for one project should not break another
+  repeatable/reproducible builds.
+
+Collaborative Data Science
+
+this is about enabling collaborative Data Science
+about erasing the distance between developer machines and production
+
+core idea; reprodcibility
+
+start with;
+"what needs to happen for code to run in production?"
+"what does that mean?"
+
+means your shit needs to not break
+
+classic problem in software "it works on my machine..."
+
+-> solve this in the now-classic way: containers
+
+important point there is that the contianer image is generated
+from a spec, reproducible
+
+this is used to control:
+- which OS
+- system packages
+- R versions
+
+also gotta control R package versions. at the time, packrat was
+pretty much the only option
+
+also need to keep track of exactly what code is running
+
+-> solve this in the classic way; Git
+
+how does it all tie togther?
+
+use container with RStudio server;
+makes the experience reasonably transparent for developers
+
+same with packrat; in theory you just use it the same way you use
+any other project
+
+use git commit to tag the images, get pushed into ECR
+production systems can use the git commit to fetch a container with
+a specific version of the code
+
+CI system can then build the image; basically it's already deployed
+
+workflow;
+devs write R code
+reasonably straightforward to "production-ize"; for experimenting
+it's pretty typical to just `read.csv("my/weird/path/to/table.csv")`,
+but for production use you need that file to be provided externally,
+so you just `read.csv(commandArgs(T)[[1]])`
+
+write a basic shell script that retrieves that table from shared storage
+like S3/EFS/whereever and provides it to the script
+
+or if it's small enough and static enough, just bake it into the image
+
+troubles:
+
+- packrat is fucking slow
+- gotta be careful with your Dockerfile, otherwise it won't cache properly
+- if you use tidyverse, you need to be clever about where you store the
+  package library, otherwise building the image will take up all of your
+  time
+- same thing for CI
+
+so what are the challenges that come with putting code in production?
+
+- gotta get the code from your machine onto a server somewhere else
+- need to make sure that code runs without supervision
+
+"but it works on my machine" is a classic problem in software
+
+generally, the approach to fixing this has been to try and package
+up all the stuff that can change between one machine and another
+
+our solutions to these problems are almost boring;
+
+- Docker to control OS, system packages, R version
+- Packrat to control R packages
+- Git to control code version
+
+"what new limitations do you run into?"
+
+- packrat is _really_ slow to run, and it takes some time to find the
+  right incantations for Travis/Docker to cache things properly
+- similar with Dockerfile; gotta be careful about how it's constructed
+  so that things get cached
+
+----
+
+"what's the workflow like"
+
+one of the nice things is that it (in theory) keeps the development
+experience fairly transparent for developers:
+
+- start RStudio
+- use packrat to manage dependencies like normal
+- ???
+- profit
+
+pretty much all of the complexity is wrapped up into a single shell script,
+which is just called `run`; the rest is handled by CI
