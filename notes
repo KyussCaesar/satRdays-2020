@@ -134,3 +134,23 @@ experience fairly transparent for developers:
 
 pretty much all of the complexity is wrapped up into a single shell script,
 which is just called `run`; the rest is handled by CI
+
+---
+
+focus on the core three: git, docker, packrat
+tack on the other three at the end:
+- ECR, ECS, Travis
+
+developer workflow will likely have to be cut
+(RStudio,)
+
+out of the core three, focus on what docker does for it
+- fixed OS, system packages and R version
+- all code and dependencies are inside container image
+- production systems pick up the container image by git commit
+
+"docker allows us to completely define the environment up-front"
+"code and dependencies are all copied into the container image"
+"can start container from the image anywhere, so basically, once
+you push, there's a full environment already present"
+"in other words, you are already in production"

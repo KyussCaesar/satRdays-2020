@@ -23,6 +23,43 @@ Good morning everyone!
 
 My name is Antony and I'm a Data Engineer at Quantiful.
 
+Now, my primary responsibility at Quantiful is "productionising"
+data science output, which, for us, means getting R code running in
+production.
+
+Yes, really, we run R code in production.
+
+Now a lot of people generally have this reaction upon hearing that:
+
+<why, why would you do that!?>
+
+Well for us, we want to get better models in front of clients _as fast
+as possible_, so it's no good if you develop a better model, only to
+have it do _nothing_ for some time while you're busy "productionising"
+it.
+
+All of our data science work is done in R, and the fastest route to
+production is just to modify that existing code rather than re-write
+everything.
+
+So if our code is already in R, then obviously the fastest route to
+production is to use that code...
+
+<right?>
+
+<well yes, but actually no>
+
+There's a lot more than just the code to consider; there's also the
+operating system, system packages, R version, and R packages used
+
+<too many limes>
+
+so how can we control all of these variables?
+
+where we landed was Git for code, Docker for the operating system,
+system packages, and R version, and a library called packrat for
+controlling R package versions
+
 I'm here today give a high-level overview of how we run R code in
 production like absolute madlads.
 
