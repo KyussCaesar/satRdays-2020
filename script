@@ -54,11 +54,81 @@ operating system, system packages, R version, and R packages used
 
 <too many limes>
 
-so how can we control all of these variables?
+so how can we control all of these variables? <slide>
+
+well for code, there's <git>, pretty standard these days,
+
+and for R packages, well the answer there's gonna be some kind of 
+package manager, and for us we use <packrat>, but there are others
+like R env.
+
+and to control the other three, we use a technology called <Docker>
+
+A quick note for those who might not know what Docker is:
+
+<slide>
+
+Basically, Docker is virtualisation technology, similar to a
+Virtual Machine. which allows you to define isolated environments
+called "containers" to run software in.
+
+This environment is defined by a file called a Dockerfile, which
+is checked-in to version control
+
+<slide>
+
+Docker uses this file to build a "container image", which is like
+a VM image, so all of your code, dependencies, R version, stuff like
+that, is frozen inside this image
+
+we can use Docker to start "containers" from these images, which is
+basically a running instance of our software
+
+now; normally stuff with Docker only works from the command line, so
+it might worry some people that they won't be able to use an IDE to
+develop, but
+
+<conviently...>
+
+there are already container images with RStudio server installed
+inside!
+So you can just pull a pre-built image from the internet, with RStudio
+Server already installed and set up, and run it on your machine
+
+from there, you basically can just develop like normal
+
+the other thing that's convenient is that container images can
+sort of be "composed together", <what I have here> is an example
+Dockerfile, where we start with that RStudio image and add some stuff
+that we need.
+
+in this case we're setting  up a Debian-based environment with RStudio,
+R version 3.6.1, and we tell Docker "please install some packages".
+
+<Also conveniently>, you can actually mount directories inside the container
+when it starts, which means you don't have to re-build as often
+
+so we split the build into two stages, where the first stage just acts as a 
+"base" for development, and then a "standalone" stage where we copy everything
+inside, and at that point <we basically have frozen everything>
+
+...So what does all this mean?
+
+Well, we've got the code and dependencies all very tightly controlled, in a
+reproducible environment, which means that as soon as you start development
+
+<you are already in production>
+
+Thank you so much!! 
+
+-----
 
 where we landed was Git for code, Docker for the operating system,
 system packages, and R version, and a library called packrat for
 controlling R package versions
+
+
+
 
 I'm here today give a high-level overview of how we run R code in
 production like absolute madlads.
