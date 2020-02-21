@@ -23,6 +23,7 @@ Good morning everyone!
 
 My name is Antony and I'm a Data Engineer at Quantiful.
 
+<<<<<<< HEAD
 Now, my primary responsibility at Quantiful is "productionising"
 data science output, which, for us, means getting R code running in
 production.
@@ -129,6 +130,137 @@ controlling R package versions
 
 
 
+=======
+At Quantiful, all of our analytics are done in R, and today I'm going to talk
+a bit about how we get that work off of developer machines and on to production ones.
+
+Getting code to run on a new machine is a pretty classic problem in software
+engineering; basically the solution people gravitate towards these days
+
+Basically, the answer is
+
+Since this is a lightning talk I'll skip straight to the solution; Docker containers,
+
+---
+
+Good morning everyone!
+
+My name is Antony (leave the credentials for the end slide) and today I'm going
+talk a bit about how we run R code in production.
+
+Whenver you try to run code on a new system, you're always going to run in to issues
+One way to reduce the number of issues is to replicate as closely as possible the
+environment in which the code was originally developed.
+
+Essentially this breaks down into 4 variables you need to control:
+
+- the operating system
+- the R version
+- the R package versions
+- (of course), the code!
+
+At my work we use Docker containers to control the first two, `packrat` for
+the third, and `git` for the last.
+
+# CRASH COURSE ON DOCKER/PACKRAT/GIT
+
+Each of these is really a full talk in and of itself, so I'm only going to touch
+on them here.
+
+## What is Docker? What are Docker containers?
+
+Docker containers are created from "container images", which are much like a VM
+image.
+Container images are generated from a specification called a Dockerfile, which
+does the job of describing the environment.
+
+## What is `packrat`?
+
+Packrat is a package manager for R, it does a similar job to `conda` (Python/R),
+`npm` (JavaScript), `maven` (Java), `cargo` (Rust).
+
+Importantly; it records the specific versions of packages used in your project,
+so that the environment can be re-created _exactly_ on other machines.
+
+## What is `git`?
+
+Git is pretty much the de-facto standard code-management tool in use today.
+
+# How does it all come together?
+
+1. DS do their work inside the container.
+2. When code is ready for deployment, `git commit && git push`.
+3. CI system builds the container image and pushes it to private registry.
+4. Production systems invoke that container with some command.
+
+# Problems we've mitigated:
+
+## Developer experience;
+
+Ideally, devs can work in their regular environment, for R that's RStudio.
+
+We use a container image that already has RStudio Server set up inside; so you
+just fire up the container using the provided script, navigate to `localhost:8080`
+in your browser, and from there you can just work as if you're using native RStudio.
+
+Likewise, I don't need to train devs on how to use any custom-built package manager,
+I can just say "go learn packrat" :D
+
+## Container build times
+
+Somewhat-standard for docker containers is to re-run the package installation
+when building your image.
+For example, during development, you install `foo==2.3.4`, which gets recorded by
+your package manager, and then during the build your package manager reads its
+lockfile and installs `foo==2.3.4` into the container.
+
+This would work fine for us, if it weren't for one part:
+
+(image: `install.packages("tidyverse")`)
+
+Many of you will know; this takes on the order of 20 to 30 minutes, depending on
+your machine and your internet connection.
+
+The solution we came up with is actually to break the container image into 2 stages;
+
+The first stage is called the "development" container, which _doesn't_ contain
+any code or R packages.
+Instead, these are made available at run-time by volume mounts.
+
+Any R packages that are installed by the developer go into the mounted directory.
+
+The next stage is called the "standalone" container, in which the _code and dependencies
+are copied_ inside.
+
+The result here is that:
+
+- for development; you can use things as normal
+- re-building the development container is quick, because no R dependencies are installed
+- re-building the standalone container is quick, because the dependencies only need to be copied inside
+
+of course, you would still need to install the package at-least-once, but at least
+you don't need to pay that time-penalty _every time the container is built_.
+
+# Tricky things we ran in to:
+
+- CI: gotta make sure the right directories are cached in the VM, otherwise you
+  basically need to do a completely fresh rebuild everytime (difference: 5mins
+  vs 30 mins)
+- Dockefile order-of-operations: can be tricky to get Docker to cache things for
+  you properly
+- symlinks issue: weird stuff can happen when data crosses from macOS Docker VM,
+  to macOS filesystem, and back again.
+
+# Problems we still have:
+
+- Docker VM is actually kinda slow on macOS.
+- when things _do_ break, DS have no idea how to fix
+
+---
+
+still to mention: container images tagged with git commit, means you can check out
+the _exact_ image that's being used in production
+>>>>>>> b5100a806db27075fdf3d8746a9fe599e4130a5d
 
 I'm here today give a high-level overview of how we run R code in
 production like absolute madlads.
